@@ -1,0 +1,5 @@
+systemd-mcp
+go.sum
+.env
+.env.*
+.envrc
