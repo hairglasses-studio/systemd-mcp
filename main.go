@@ -420,7 +420,12 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 // ---------------------------------------------------------------------------
 
 func main() {
-	reg := registry.NewToolRegistry()
+	reg := registry.NewToolRegistry(registry.Config{
+		Middleware: []registry.Middleware{
+			registry.AuditMiddleware(""),
+			registry.SafetyTierMiddleware(),
+		},
+	})
 	reg.RegisterModule(&SystemdModule{})
 
 	s := registry.NewMCPServer("systemd-mcp", "1.0.0")
