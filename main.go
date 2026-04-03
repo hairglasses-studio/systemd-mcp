@@ -227,6 +227,20 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 		"systemd_status",
 		"Show detailed status of a systemd unit including active state, PID, memory, and CPU usage.",
 		func(_ context.Context, input StatusInput) (StatusOutput, error) {
+			// Try D-Bus first.
+			if sdb := getDBus(input.System); sdb != nil {
+				us, err := sdb.GetUnitStatus(input.Unit)
+				if err == nil {
+					if us.LoadState == "not-found" {
+						out := unitStatusToOutput(input.Unit, us)
+						return out, fmt.Errorf("[%s] unit %s not found", handler.ErrNotFound, input.Unit)
+					}
+					return unitStatusToOutput(input.Unit, us), nil
+				}
+				// D-Bus call failed — fall through to systemctl.
+			}
+
+			// Fallback: systemctl.
 			user := !input.System
 			out, err := runSystemctl(user, "show",
 				"--property=ActiveState,SubState,Description,LoadState,FragmentPath,ActiveEnterTimestamp,MainPID,MemoryCurrent,CPUUsageNSec",
@@ -281,6 +295,25 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 		"systemd_list_units",
 		"List systemd units, optionally filtered by state.",
 		func(_ context.Context, input ListUnitsInput) (ListUnitsOutput, error) {
+			// Try D-Bus first.
+			if sdb := getDBus(input.System); sdb != nil {
+				var units []UnitInfo
+				var err error
+				if input.State != "" {
+					units, err = sdb.ListUnitsFiltered([]string{input.State})
+				} else {
+					units, err = sdb.ListUnits()
+				}
+				if err == nil {
+					raw, jerr := unitsToJSON(units)
+					if jerr == nil {
+						return ListUnitsOutput{Units: raw}, nil
+					}
+				}
+				// D-Bus failed — fall through to systemctl.
+			}
+
+			// Fallback: systemctl.
 			user := !input.System
 			args := []string{"list-units", "--output=json"}
 			if input.State != "" {
@@ -300,6 +333,19 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 		"systemd_list_timers",
 		"List active systemd timers with their next/last trigger times.",
 		func(_ context.Context, input ListTimersInput) (ListTimersOutput, error) {
+			// Try D-Bus first.
+			if sdb := getDBus(input.System); sdb != nil {
+				timers, err := sdb.ListTimers()
+				if err == nil {
+					raw, jerr := timersToJSON(timers)
+					if jerr == nil {
+						return ListTimersOutput{Timers: raw}, nil
+					}
+				}
+				// D-Bus failed — fall through to systemctl.
+			}
+
+			// Fallback: systemctl.
 			user := !input.System
 			out, err := runSystemctl(user, "list-timers", "--output=json", "--no-pager")
 			if err != nil {
@@ -343,6 +389,19 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 		"systemd_failed",
 		"List failed systemd units.",
 		func(_ context.Context, input FailedInput) (FailedOutput, error) {
+			// Try D-Bus first.
+			if sdb := getDBus(input.System); sdb != nil {
+				units, err := sdb.GetFailedUnits()
+				if err == nil {
+					raw, jerr := unitsToJSON(units)
+					if jerr == nil {
+						return FailedOutput{Units: raw}, nil
+					}
+				}
+				// D-Bus failed — fall through to systemctl.
+			}
+
+			// Fallback: systemctl.
 			user := !input.System
 			out, err := runSystemctl(user, "--failed", "--output=json", "--no-pager")
 			if err != nil {
@@ -360,6 +419,18 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 		"systemd_start",
 		"Start a systemd unit.",
 		func(_ context.Context, input StartInput) (StartOutput, error) {
+			// Try D-Bus first.
+			if sdb := getDBus(input.System); sdb != nil {
+				if err := sdb.StartUnit(input.Unit, "replace"); err == nil {
+					return StartOutput{
+						Unit:    input.Unit,
+						Message: input.Unit + " started",
+					}, nil
+				}
+				// D-Bus failed — fall through to systemctl.
+			}
+
+			// Fallback: systemctl.
 			user := !input.System
 			_, err := runSystemctl(user, "start", input.Unit)
 			if err != nil {
@@ -378,6 +449,18 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 		"systemd_restart",
 		"Restart a systemd unit.",
 		func(_ context.Context, input RestartInput) (RestartOutput, error) {
+			// Try D-Bus first.
+			if sdb := getDBus(input.System); sdb != nil {
+				if err := sdb.RestartUnit(input.Unit, "replace"); err == nil {
+					return RestartOutput{
+						Unit:    input.Unit,
+						Message: input.Unit + " restarted",
+					}, nil
+				}
+				// D-Bus failed — fall through to systemctl.
+			}
+
+			// Fallback: systemctl.
 			user := !input.System
 			_, err := runSystemctl(user, "restart", input.Unit)
 			if err != nil {
@@ -396,6 +479,18 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 		"systemd_enable",
 		"Enable a systemd unit to start on boot/login.",
 		func(_ context.Context, input EnableInput) (EnableOutput, error) {
+			// Try D-Bus first.
+			if sdb := getDBus(input.System); sdb != nil {
+				if err := sdb.EnableUnit(input.Unit); err == nil {
+					return EnableOutput{
+						Unit:    input.Unit,
+						Message: input.Unit + " enabled",
+					}, nil
+				}
+				// D-Bus failed — fall through to systemctl.
+			}
+
+			// Fallback: systemctl.
 			user := !input.System
 			_, err := runSystemctl(user, "enable", input.Unit)
 			if err != nil {
@@ -419,6 +514,19 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			if err := requireConfirmation(input.Unit, input.Confirm, "stopp"); err != nil {
 				return StopOutput{}, err
 			}
+
+			// Try D-Bus first.
+			if sdb := getDBus(input.System); sdb != nil {
+				if err := sdb.StopUnit(input.Unit, "replace"); err == nil {
+					return StopOutput{
+						Unit:    input.Unit,
+						Message: input.Unit + " stopped",
+					}, nil
+				}
+				// D-Bus failed — fall through to systemctl.
+			}
+
+			// Fallback: systemctl.
 			user := !input.System
 			_, err := runSystemctl(user, "stop", input.Unit)
 			if err != nil {
@@ -440,6 +548,19 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			if err := requireConfirmation(input.Unit, input.Confirm, "disabl"); err != nil {
 				return DisableOutput{}, err
 			}
+
+			// Try D-Bus first.
+			if sdb := getDBus(input.System); sdb != nil {
+				if err := sdb.DisableUnit(input.Unit); err == nil {
+					return DisableOutput{
+						Unit:    input.Unit,
+						Message: input.Unit + " disabled",
+					}, nil
+				}
+				// D-Bus failed — fall through to systemctl.
+			}
+
+			// Fallback: systemctl.
 			user := !input.System
 			_, err := runSystemctl(user, "disable", input.Unit)
 			if err != nil {
@@ -473,6 +594,8 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 // ---------------------------------------------------------------------------
 
 func main() {
+	initDBus()
+
 	reg := registry.NewToolRegistry(registry.Config{
 		Middleware: []registry.Middleware{
 			registry.AuditMiddleware(""),
