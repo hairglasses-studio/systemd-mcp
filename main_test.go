@@ -217,12 +217,15 @@ func TestStatus_SystemScope(t *testing.T) {
 	requireSystemctl(t)
 
 	td := findTool(t, "systemd_status")
-	// System scope query — may succeed or fail based on permissions
+	// System scope query — may succeed or fail based on permissions or unit not existing
 	req := makeReq(map[string]any{"unit": "bluetooth.service", "system": true})
 	result, err := td.Handler(context.Background(), req)
 	if err != nil {
-		// Acceptable — might not have permission. Just verify it tried system scope.
 		t.Logf("system scope status (expected possible failure): %v", err)
+		return
+	}
+	if result != nil && result.IsError {
+		t.Log("system scope returned error result (unit may not exist on this host)")
 		return
 	}
 
