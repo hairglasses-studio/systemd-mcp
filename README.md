@@ -1,5 +1,8 @@
 # systemd-mcp
 
+[![Go](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 MCP server for systemd service and timer management. Gives AI assistants like Claude Code the ability to manage Linux services, inspect logs, and debug failed units.
 
 Built with [mcpkit](https://github.com/hairglasses-studio/mcpkit) using stdio transport.
