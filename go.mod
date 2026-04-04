@@ -2,12 +2,14 @@ module github.com/hairglasses-studio/systemd-mcp
 
 go 1.26.1
 
-require github.com/hairglasses-studio/mcpkit v0.0.0-20260402085537-d0dd780ea214
+require (
+	github.com/godbus/dbus/v5 v5.2.2
+	github.com/hairglasses-studio/mcpkit v0.1.0
+)
 
 require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
-	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/google/jsonschema-go v0.4.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/invopop/jsonschema v0.13.0 // indirect
@@ -23,5 +25,3 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/hairglasses-studio/mcpkit => ../mcpkit
