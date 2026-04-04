@@ -607,7 +607,7 @@ func main() {
 	s := registry.NewMCPServer("systemd-mcp", "1.0.0")
 	reg.RegisterWithServer(s)
 
-	if err := registry.ServeStdio(s); err != nil {
+	if err := registry.ServeAuto(s); err != nil {
 		log.Fatal(err)
 	}
 }
