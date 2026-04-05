@@ -1,0 +1,31 @@
+{
+  "name": "io.github.hairglasses-studio.systemd-mcp",
+  "description": "Systemd service and timer management for Linux hosts",
+  "version": "1.2.0",
+  "homepage": "https://github.com/hairglasses-studio/systemd-mcp",
+  "license": "MIT",
+  "organization": "hairglasses-studio",
+  "repository": "https://github.com/hairglasses-studio/systemd-mcp",
+  "transport": ["stdio"],
+  "capabilities": {
+    "tools": true,
+    "resources": false,
+    "prompts": false
+  },
+  "tools": [
+    { "name": "systemd_status", "description": "Show unit status (active state, PID, memory, CPU)" },
+    { "name": "systemd_start", "description": "Start a unit" },
+    { "name": "systemd_stop", "description": "Stop a unit" },
+    { "name": "systemd_restart", "description": "Restart a unit" },
+    { "name": "systemd_enable", "description": "Enable a unit for boot/login" },
+    { "name": "systemd_disable", "description": "Disable a unit from boot/login" },
+    { "name": "systemd_logs", "description": "Fetch journal logs (configurable lines, since filter)" },
+    { "name": "systemd_list_units", "description": "List units with optional state filter" },
+    { "name": "systemd_list_timers", "description": "List active timers with trigger times" },
+    { "name": "systemd_failed", "description": "List failed units" }
+  ],
+  "tags": ["linux", "systemd", "service-management", "devops"],
+  "tool_count": 10,
+  "categories": ["service-management", "devops"],
+  "generated_at": "2026-04-05T00:00:00Z"
+}
