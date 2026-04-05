@@ -1,0 +1,74 @@
+name: MCP Tool Request
+description: Propose a new MCP tool for systemd-mcp
+title: "[Tool] "
+labels: ["type/mcp-tool", "status/triage"]
+assignees: ["hairglasses"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Propose a new MCP tool! Describe what it should do, who benefits, and how agents would use it.
+
+  - type: input
+    id: tool-name
+    attributes:
+      label: Tool Name
+      description: "Follow the `systemd_action` naming convention (e.g., `systemd_reload`, `systemd_mask`)"
+      placeholder: "systemd_mask"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What does this tool do? One clear sentence.
+      placeholder: "Masks a systemd unit to prevent it from being started."
+    validations:
+      required: true
+
+  - type: textarea
+    id: parameters
+    attributes:
+      label: Input Parameters
+      description: What input parameters should the tool accept? Use a table format.
+      placeholder: |
+        | Parameter | Type | Required | Description |
+        |-----------|------|----------|-------------|
+        | unit | string | yes | Unit name to mask |
+        | system | bool | no | Use system scope (default: user) |
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Expected Output
+      description: What should the tool return? Provide an example.
+      placeholder: |
+        ```json
+        {
+          "unit": "example.service",
+          "action": "mask",
+          "success": true
+        }
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: security
+    attributes:
+      label: Security Considerations
+      description: Does this tool read sensitive data, modify system state, or require elevated privileges?
+      placeholder: "Modifies unit state. System scope requires appropriate permissions."
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I checked the existing tool catalog and this is not a duplicate
+          required: true
+        - label: I am willing to implement this tool
+          required: false
