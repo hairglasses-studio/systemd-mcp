@@ -42,6 +42,15 @@ func TestModuleRegistration(t *testing.T) {
 	}
 }
 
+func TestContextRegistries(t *testing.T) {
+	if got := buildSystemdResourceRegistry().ResourceCount(); got != 1 {
+		t.Fatalf("expected 1 systemd resource, got %d", got)
+	}
+	if got := buildSystemdPromptRegistry().PromptCount(); got != 1 {
+		t.Fatalf("expected 1 systemd prompt, got %d", got)
+	}
+}
+
 // ---------------------------------------------------------------------------
 // systemd_status
 // ---------------------------------------------------------------------------

@@ -3,7 +3,7 @@
 [![Go](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-MCP server for systemd service and timer management. Gives AI assistants like Claude Code the ability to manage Linux services, inspect logs, and debug failed units.
+MCP server for systemd service and timer management. Gives AI assistants like Codex or Claude Code the ability to manage Linux services, inspect logs, and debug failed units.
 
 Built with [mcpkit](https://github.com/hairglasses-studio/mcpkit) using stdio transport.
 
@@ -23,7 +23,7 @@ go build -o systemd-mcp .
 
 ## Configure
 
-Add to your Claude Code MCP config (`.mcp.json`):
+Add to your MCP client config (for example Codex or Claude Code):
 
 ```json
 {

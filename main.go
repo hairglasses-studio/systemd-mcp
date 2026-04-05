@@ -384,6 +384,8 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			}, nil
 		},
 	)
+	logs.SearchTerms = []string{"journal", "journald", "service logs", "unit logs"}
+	logs.MaxResultChars = 8000
 
 	failed := handler.TypedHandler[FailedInput, FailedOutput](
 		"systemd_failed",
@@ -606,6 +608,8 @@ func main() {
 
 	s := registry.NewMCPServer("systemd-mcp", "1.0.0")
 	reg.RegisterWithServer(s)
+	buildSystemdResourceRegistry().RegisterWithServer(s)
+	buildSystemdPromptRegistry().RegisterWithServer(s)
 
 	if err := registry.ServeAuto(s); err != nil {
 		log.Fatal(err)
