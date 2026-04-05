@@ -77,7 +77,7 @@ func (s *SystemdDBus) RestartUnit(name, mode string) error {
 // EnableUnit enables a systemd unit via EnableUnitFiles.
 func (s *SystemdDBus) EnableUnit(name string) error {
 	var carries bool
-	var changes [][]interface{}
+	var changes [][]any
 	err := s.manager().Call(
 		"org.freedesktop.systemd1.Manager.EnableUnitFiles", 0,
 		[]string{name}, // files
@@ -93,7 +93,7 @@ func (s *SystemdDBus) EnableUnit(name string) error {
 
 // DisableUnit disables a systemd unit via DisableUnitFiles.
 func (s *SystemdDBus) DisableUnit(name string) error {
-	var changes [][]interface{}
+	var changes [][]any
 	err := s.manager().Call(
 		"org.freedesktop.systemd1.Manager.DisableUnitFiles", 0,
 		[]string{name}, // files
@@ -389,13 +389,13 @@ func getDBus(system bool) *SystemdDBus {
 // preserving the same field semantics as the systemctl --show parser.
 func unitStatusToOutput(name string, us *UnitStatus) StatusOutput {
 	out := StatusOutput{
-		Unit:        name,
-		ActiveState: us.ActiveState,
-		SubState:    us.SubState,
-		Description: us.Description,
-		LoadState:   us.LoadState,
+		Unit:         name,
+		ActiveState:  us.ActiveState,
+		SubState:     us.SubState,
+		Description:  us.Description,
+		LoadState:    us.LoadState,
 		FragmentPath: us.FragmentPath,
-		MainPID:     int(us.MainPID),
+		MainPID:      int(us.MainPID),
 	}
 	if us.ActiveEnterTimestamp > 0 {
 		out.ActiveEnterTimestamp = strconv.FormatUint(us.ActiveEnterTimestamp, 10)

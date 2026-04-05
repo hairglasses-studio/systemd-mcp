@@ -251,7 +251,7 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			}
 
 			result := StatusOutput{Unit: input.Unit}
-			for _, line := range strings.Split(out, "\n") {
+			for line := range strings.SplitSeq(out, "\n") {
 				parts := strings.SplitN(line, "=", 2)
 				if len(parts) != 2 {
 					continue
