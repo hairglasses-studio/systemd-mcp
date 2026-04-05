@@ -4,7 +4,7 @@ go 1.26.1
 
 require (
 	github.com/godbus/dbus/v5 v5.2.2
-	github.com/hairglasses-studio/mcpkit v0.2.0
+	github.com/hairglasses-studio/mcpkit v0.3.0
 	github.com/mark3labs/mcp-go v0.47.0
 )
 
