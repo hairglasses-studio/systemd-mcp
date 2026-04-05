@@ -2,6 +2,7 @@
 
 [![Go](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Glama](https://glama.ai/mcp/servers/hairglasses-studio/systemd-mcp/badges/score.svg)](https://glama.ai/mcp/servers/hairglasses-studio/systemd-mcp)
 
 MCP server for systemd service and timer management. Gives AI assistants like Codex or Claude Code the ability to manage Linux services, inspect logs, and debug failed units.
 
