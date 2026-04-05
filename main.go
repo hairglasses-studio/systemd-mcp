@@ -422,9 +422,11 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 		"systemd_start",
 		"Start a systemd unit.",
 		func(_ context.Context, input StartInput) (StartOutput, error) {
+			slog.Info("starting unit", "unit", input.Unit, "system", input.System)
 			// Try D-Bus first.
 			if sdb := getDBus(input.System); sdb != nil {
 				if err := sdb.StartUnit(input.Unit, "replace"); err == nil {
+					slog.Info("unit started", "unit", input.Unit, "via", "dbus")
 					return StartOutput{
 						Unit:    input.Unit,
 						Message: input.Unit + " started",
@@ -437,8 +439,10 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			user := !input.System
 			_, err := runSystemctl(user, "start", input.Unit)
 			if err != nil {
+				slog.Error("unit start failed", "unit", input.Unit, "error", err)
 				return StartOutput{}, fmt.Errorf("[%s] %w", handler.ErrUpstreamError, err)
 			}
+			slog.Info("unit started", "unit", input.Unit, "via", "systemctl")
 			return StartOutput{
 				Unit:    input.Unit,
 				Message: input.Unit + " started",
@@ -452,9 +456,11 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 		"systemd_restart",
 		"Restart a systemd unit.",
 		func(_ context.Context, input RestartInput) (RestartOutput, error) {
+			slog.Info("restarting unit", "unit", input.Unit, "system", input.System)
 			// Try D-Bus first.
 			if sdb := getDBus(input.System); sdb != nil {
 				if err := sdb.RestartUnit(input.Unit, "replace"); err == nil {
+					slog.Info("unit restarted", "unit", input.Unit, "via", "dbus")
 					return RestartOutput{
 						Unit:    input.Unit,
 						Message: input.Unit + " restarted",
@@ -467,8 +473,10 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			user := !input.System
 			_, err := runSystemctl(user, "restart", input.Unit)
 			if err != nil {
+				slog.Error("unit restart failed", "unit", input.Unit, "error", err)
 				return RestartOutput{}, fmt.Errorf("[%s] %w", handler.ErrUpstreamError, err)
 			}
+			slog.Info("unit restarted", "unit", input.Unit, "via", "systemctl")
 			return RestartOutput{
 				Unit:    input.Unit,
 				Message: input.Unit + " restarted",
@@ -482,9 +490,11 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 		"systemd_enable",
 		"Enable a systemd unit to start on boot/login.",
 		func(_ context.Context, input EnableInput) (EnableOutput, error) {
+			slog.Info("enabling unit", "unit", input.Unit, "system", input.System)
 			// Try D-Bus first.
 			if sdb := getDBus(input.System); sdb != nil {
 				if err := sdb.EnableUnit(input.Unit); err == nil {
+					slog.Info("unit enabled", "unit", input.Unit, "via", "dbus")
 					return EnableOutput{
 						Unit:    input.Unit,
 						Message: input.Unit + " enabled",
@@ -497,8 +507,10 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			user := !input.System
 			_, err := runSystemctl(user, "enable", input.Unit)
 			if err != nil {
+				slog.Error("unit enable failed", "unit", input.Unit, "error", err)
 				return EnableOutput{}, fmt.Errorf("[%s] %w", handler.ErrUpstreamError, err)
 			}
+			slog.Info("unit enabled", "unit", input.Unit, "via", "systemctl")
 			return EnableOutput{
 				Unit:    input.Unit,
 				Message: input.Unit + " enabled",
@@ -518,9 +530,11 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 				return StopOutput{}, err
 			}
 
+			slog.Info("stopping unit", "unit", input.Unit, "system", input.System)
 			// Try D-Bus first.
 			if sdb := getDBus(input.System); sdb != nil {
 				if err := sdb.StopUnit(input.Unit, "replace"); err == nil {
+					slog.Info("unit stopped", "unit", input.Unit, "via", "dbus")
 					return StopOutput{
 						Unit:    input.Unit,
 						Message: input.Unit + " stopped",
@@ -533,8 +547,10 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			user := !input.System
 			_, err := runSystemctl(user, "stop", input.Unit)
 			if err != nil {
+				slog.Error("unit stop failed", "unit", input.Unit, "error", err)
 				return StopOutput{}, fmt.Errorf("[%s] %w", handler.ErrUpstreamError, err)
 			}
+			slog.Info("unit stopped", "unit", input.Unit, "via", "systemctl")
 			return StopOutput{
 				Unit:    input.Unit,
 				Message: input.Unit + " stopped",
@@ -552,9 +568,11 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 				return DisableOutput{}, err
 			}
 
+			slog.Info("disabling unit", "unit", input.Unit, "system", input.System)
 			// Try D-Bus first.
 			if sdb := getDBus(input.System); sdb != nil {
 				if err := sdb.DisableUnit(input.Unit); err == nil {
+					slog.Info("unit disabled", "unit", input.Unit, "via", "dbus")
 					return DisableOutput{
 						Unit:    input.Unit,
 						Message: input.Unit + " disabled",
@@ -567,8 +585,10 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			user := !input.System
 			_, err := runSystemctl(user, "disable", input.Unit)
 			if err != nil {
+				slog.Error("unit disable failed", "unit", input.Unit, "error", err)
 				return DisableOutput{}, fmt.Errorf("[%s] %w", handler.ErrUpstreamError, err)
 			}
+			slog.Info("unit disabled", "unit", input.Unit, "via", "systemctl")
 			return DisableOutput{
 				Unit:    input.Unit,
 				Message: input.Unit + " disabled",
@@ -601,6 +621,8 @@ func main() {
 		Level: slog.LevelInfo,
 	})).With("service", "systemd-mcp"))
 
+	slog.Info("server starting", "name", "systemd-mcp", "version", "1.0.0")
+
 	initDBus()
 
 	reg := registry.NewToolRegistry(registry.Config{
@@ -609,7 +631,9 @@ func main() {
 			registry.SafetyTierMiddleware(),
 		},
 	})
-	reg.RegisterModule(&SystemdModule{})
+	mod := &SystemdModule{}
+	reg.RegisterModule(mod)
+	slog.Info("tools registered", "module", mod.Name(), "count", len(mod.Tools()))
 
 	s := registry.NewMCPServer("systemd-mcp", "1.0.0")
 	reg.RegisterWithServer(s)
