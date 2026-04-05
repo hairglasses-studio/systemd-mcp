@@ -11,7 +11,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -596,6 +597,10 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 // ---------------------------------------------------------------------------
 
 func main() {
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	})).With("service", "systemd-mcp"))
+
 	initDBus()
 
 	reg := registry.NewToolRegistry(registry.Config{
@@ -612,6 +617,7 @@ func main() {
 	buildSystemdPromptRegistry().RegisterWithServer(s)
 
 	if err := registry.ServeAuto(s); err != nil {
-		log.Fatal(err)
+		slog.Error("server stopped", "error", err)
+		os.Exit(1)
 	}
 }
