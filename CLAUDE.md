@@ -1,5 +1,7 @@
 # systemd-mcp
 
+This repo uses [AGENTS.md](AGENTS.md) as the canonical instruction file.
+
 MCP server for systemd service and timer management. Built on mcpkit (stdio transport).
 
 ## Tools (10)

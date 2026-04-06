@@ -1,4 +1,6 @@
 # systemd-mcp — Agent Instructions
+> Canonical instructions: AGENTS.md
+
 
 MCP server for systemd service and timer management. Built on mcpkit (stdio transport).
 
