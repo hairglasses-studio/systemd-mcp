@@ -1,12 +1,18 @@
 # systemd-mcp — Agent Instructions
 
-This repo still keeps its detailed repo guidance in [CLAUDE.md](CLAUDE.md). Read that file before making changes.
+MCP server for systemd service and timer management. Built on mcpkit (stdio transport).
 
-## Working Rules
+> Canonical source: CLAUDE.md
 
-- Treat [CLAUDE.md](CLAUDE.md) as the source of truth for build, test, architecture, and repo-specific conventions.
-- Keep [AGENTS.md](AGENTS.md), `GEMINI.md`, and [CLAUDE.md](CLAUDE.md) aligned when instructions change.
+## Build & Test
 
-## Shared Research Repository
+```bash
+go build -o systemd-mcp ./...
+go vet ./...
+go test ./... -count=1
+```
 
-Cross-project research lives at `~/hairglasses-studio/docs/` (git: hairglasses-studio/docs). When launching research agents, check existing docs first and write reusable research outputs back to the shared repo rather than local docs/.
+## Architecture
+
+Single-file monolithic Go program (`main.go`). One `SystemdModule` registers all 10 tools. Shells out to `systemctl` and `journalctl` — no D-Bus dependency.
+
