@@ -621,7 +621,7 @@ func main() {
 		Level: slog.LevelInfo,
 	})).With("service", "systemd-mcp"))
 
-	slog.Info("server starting", "name", "systemd-mcp", "version", "1.0.0")
+	slog.Info("server starting", "name", "systemd-mcp", "version", "1.2.0")
 
 	initDBus()
 
@@ -635,7 +635,7 @@ func main() {
 	reg.RegisterModule(mod)
 	slog.Info("tools registered", "module", mod.Name(), "count", len(mod.Tools()))
 
-	s := registry.NewMCPServer("systemd-mcp", "1.0.0")
+	s := registry.NewMCPServer("systemd-mcp", "1.2.0")
 	reg.RegisterWithServer(s)
 	buildSystemdResourceRegistry().RegisterWithServer(s)
 	buildSystemdPromptRegistry().RegisterWithServer(s)

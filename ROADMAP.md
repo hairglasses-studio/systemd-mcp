@@ -2,7 +2,7 @@
 
 ## Current State
 
-systemd-mcp provides 10 tools for systemd service and timer management via MCP. Single-file Go binary, shells out to `systemctl` and `journalctl` (no D-Bus dependency). User scope by default, system scope opt-in. Built on mcpkit with stdio transport.
+systemd-mcp provides 10 tools for systemd service and timer management via MCP. Single Go binary with D-Bus primary backend and systemctl/journalctl fallback. User scope by default, system scope opt-in. Built on mcpkit with stdio transport.
 
 All 10 tools are functional and tested. MIT licensed, README and CLAUDE.md in place.
 
@@ -20,7 +20,7 @@ All 10 tools are functional and tested. MIT licensed, README and CLAUDE.md in pl
 - Pagination support for `systemd_logs` (offset + cursor-based)
 
 ## Future Considerations
-- D-Bus integration as optional backend (eliminates shell overhead, enables event subscriptions)
+- D-Bus event subscriptions (unit state change notifications via SSE)
 - `systemd_watch` — streaming unit state changes via SSE transport
 - Composed `investigate_unit` tool (status + logs + dependencies in one call)
 - Support for `systemd-analyze` blame/critical-chain output

@@ -31,7 +31,7 @@ go test ./... -count=1
 
 ## Architecture
 
-Single-file monolithic Go program (`main.go`). One `SystemdModule` registers all 10 tools. Shells out to `systemctl` and `journalctl` — no D-Bus dependency.
+Go program with D-Bus primary backend and systemctl/journalctl fallback. One `SystemdModule` registers all 10 tools. D-Bus connections are optional — if unavailable, tools transparently fall back to shell commands.
 
 ## Scope Convention
 
