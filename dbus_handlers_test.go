@@ -20,7 +20,7 @@ func requireDBus(t *testing.T) {
 	if err != nil {
 		t.Skipf("D-Bus session bus not available: %v", err)
 	}
-	sdb.Close()
+	_ = sdb.Close()
 }
 
 func withDBus(t *testing.T, fn func()) {
@@ -37,7 +37,7 @@ func withDBus(t *testing.T, fn func()) {
 	if err != nil {
 		t.Skipf("D-Bus session bus not available: %v", err)
 	}
-	defer dbusSession.Close()
+	defer func() { _ = dbusSession.Close() }()
 
 	dbusSystem, err = NewSystemdDBus(true)
 	if err != nil {
@@ -45,7 +45,7 @@ func withDBus(t *testing.T, fn func()) {
 		t.Logf("D-Bus system bus not available: %v", err)
 		dbusSystem = nil
 	} else {
-		defer dbusSystem.Close()
+		defer func() { _ = dbusSystem.Close() }()
 	}
 
 	fn()

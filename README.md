@@ -8,6 +8,8 @@
 
 MCP server for systemd service and timer management. Gives AI assistants like Codex or Claude Code the ability to manage Linux services, inspect logs, and debug failed units.
 
+Canonical development lives in [`hairglasses-studio/dotfiles`](https://github.com/hairglasses-studio/dotfiles/tree/main/mcp/systemd-mcp) under `dotfiles/mcp/systemd-mcp`. The standalone [`systemd-mcp`](https://github.com/hairglasses-studio/systemd-mcp) repo is a publish mirror kept in parity for installation and discovery.
+
 Built with [mcpkit](https://github.com/hairglasses-studio/mcpkit) using stdio transport.
 
 ## Install
