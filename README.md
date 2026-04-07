@@ -1,14 +1,15 @@
 # systemd-mcp
 
-> **Archived** -- This repo has been consolidated into [hairglasses-studio/dotfiles](https://github.com/hairglasses-studio/dotfiles) at `mcp/systemd-mcp/`. For continued updates, use the consolidated version.
+> **Mirror** -- Canonical development lives in [hairglasses-studio/dotfiles](https://github.com/hairglasses-studio/dotfiles) at `mcp/systemd-mcp/`. This repo is a publish mirror kept in parity for `go install` and MCP registry discovery.
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/hairglasses-studio/systemd-mcp.svg)](https://pkg.go.dev/github.com/hairglasses-studio/systemd-mcp)
+[![Go Report Card](https://goreportcard.com/badge/github.com/hairglasses-studio/systemd-mcp)](https://goreportcard.com/report/github.com/hairglasses-studio/systemd-mcp)
+[![CI](https://github.com/hairglasses-studio/systemd-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/hairglasses-studio/systemd-mcp/actions/workflows/ci.yml)
 [![Go](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Glama](https://glama.ai/mcp/servers/hairglasses-studio/systemd-mcp/badges/score.svg)](https://glama.ai/mcp/servers/hairglasses-studio/systemd-mcp)
 
 MCP server for systemd service and timer management. Gives AI assistants like Codex or Claude Code the ability to manage Linux services, inspect logs, and debug failed units.
-
-Canonical development lives in [`hairglasses-studio/dotfiles`](https://github.com/hairglasses-studio/dotfiles/tree/main/mcp/systemd-mcp) under `dotfiles/mcp/systemd-mcp`. The standalone [`systemd-mcp`](https://github.com/hairglasses-studio/systemd-mcp) repo is a publish mirror kept in parity for installation and discovery.
 
 Built with [mcpkit](https://github.com/hairglasses-studio/mcpkit) using stdio transport.
 
