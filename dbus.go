@@ -1,4 +1,4 @@
-package systemd
+package main
 
 import (
 	"encoding/json"
