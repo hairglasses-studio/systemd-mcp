@@ -73,7 +73,7 @@ All tools default to **user scope** (`--user`). Set `system: true` for system-wi
 
 ## Architecture
 
-Single Go binary. Shells out to `systemctl` and `journalctl` — no D-Bus dependency. Uses mcpkit's `TypedHandler` generics for type-safe parameter handling and structured error codes.
+Single Go binary. Uses D-Bus as the primary backend with automatic fallback to `systemctl` and `journalctl` when D-Bus is unavailable. Uses mcpkit's `TypedHandler` generics for type-safe parameter handling and structured error codes.
 
 ## License
 
