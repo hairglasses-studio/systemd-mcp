@@ -56,7 +56,7 @@ Add to your MCP client config (for example Codex or Claude Code):
 | `systemd_list_timers` | List active timers with trigger times |
 | `systemd_failed` | List failed units |
 
-## Scope
+## Usage Examples
 
 All tools default to **user scope** (`--user`). Set `system: true` for system-wide services (requires appropriate permissions).
 
