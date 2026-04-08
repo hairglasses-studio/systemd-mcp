@@ -291,6 +291,7 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			return result, nil
 		},
 	)
+	status.Category = "systemd"
 
 	listUnits := handler.TypedHandler[ListUnitsInput, ListUnitsOutput](
 		"systemd_list_units",
@@ -329,6 +330,7 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			}, nil
 		},
 	)
+	listUnits.Category = "systemd"
 
 	listTimers := handler.TypedHandler[ListTimersInput, ListTimersOutput](
 		"systemd_list_timers",
@@ -357,6 +359,7 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			}, nil
 		},
 	)
+	listTimers.Category = "systemd"
 
 	logs := handler.TypedHandler[LogsInput, LogsOutput](
 		"systemd_logs",
@@ -385,6 +388,7 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			}, nil
 		},
 	)
+	logs.Category = "systemd"
 	logs.SearchTerms = []string{"journal", "journald", "service logs", "unit logs"}
 	logs.MaxResultChars = 8000
 
@@ -415,6 +419,7 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			}, nil
 		},
 	)
+	failed.Category = "systemd"
 
 	// ── Mutating tools (IsWrite: true, ComplexityModerate) ─────────────
 
@@ -449,6 +454,7 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			}, nil
 		},
 	)
+	start.Category = "systemd"
 	start.IsWrite = true
 	start.Complexity = registry.ComplexityModerate
 
@@ -483,6 +489,7 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			}, nil
 		},
 	)
+	restart.Category = "systemd"
 	restart.IsWrite = true
 	restart.Complexity = registry.ComplexityModerate
 
@@ -517,6 +524,7 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			}, nil
 		},
 	)
+	enable.Category = "systemd"
 	enable.IsWrite = true
 	enable.Complexity = registry.ComplexityModerate
 
@@ -557,6 +565,7 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			}, nil
 		},
 	)
+	stop.Category = "systemd"
 	stop.IsWrite = true
 	stop.Complexity = registry.ComplexityComplex
 
@@ -595,6 +604,7 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 			}, nil
 		},
 	)
+	disable.Category = "systemd"
 	disable.IsWrite = true
 	disable.Complexity = registry.ComplexityComplex
 
