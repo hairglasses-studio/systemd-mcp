@@ -4,7 +4,7 @@
 // Usage:
 //
 //	systemd-mcp
-package main
+package systemd
 
 import (
 	"bytes"
@@ -613,10 +613,10 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 }
 
 // ---------------------------------------------------------------------------
-// main
+// Setup
 // ---------------------------------------------------------------------------
 
-func main() {
+func Setup() (*registry.ToolRegistry, *registry.MCPServer) {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
 	})).With("service", "systemd-mcp"))
@@ -640,8 +640,5 @@ func main() {
 	buildSystemdResourceRegistry().RegisterWithServer(s)
 	buildSystemdPromptRegistry().RegisterWithServer(s)
 
-	if err := registry.ServeAuto(s); err != nil {
-		slog.Error("server stopped", "error", err)
-		os.Exit(1)
-	}
+	return reg, s
 }
