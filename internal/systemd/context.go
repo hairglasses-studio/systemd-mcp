@@ -2,6 +2,7 @@ package systemd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hairglasses-studio/mcpkit/prompts"
@@ -36,6 +37,29 @@ func (m *systemdResourceModule) Resources() []resources.ResourceDefinition {
 			},
 			Category: "workflow",
 			Tags:     []string{"triage", "debugging", "systemd"},
+		},
+		{
+			Resource: mcp.NewResource(
+				"systemd://runtime/capabilities",
+				"Systemd Runtime Capabilities",
+				mcp.WithResourceDescription("Live backend capability report for user and system scope"),
+				mcp.WithMIMEType("application/json"),
+			),
+			Handler: func(_ context.Context, _ mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+				body, err := json.MarshalIndent(detectRuntimeCapabilities(), "", "  ")
+				if err != nil {
+					return nil, err
+				}
+				return []mcp.ResourceContents{
+					mcp.TextResourceContents{
+						URI:      "systemd://runtime/capabilities",
+						MIMEType: "application/json",
+						Text:     string(body),
+					},
+				}, nil
+			},
+			Category: "runtime",
+			Tags:     []string{"systemd", "capabilities", "runtime"},
 		},
 	}
 }

@@ -1,16 +1,19 @@
-.PHONY: build build-a2a test vet lint check coverage
+.PHONY: build test test-unit test-live vet lint check coverage
 
 build:
-	GOWORK=off go build -o systemd-mcp ./cmd/systemd-mcp
-
-build-a2a:
-	GOWORK=off go build -o systemd-a2a ./cmd/systemd-a2a
+	go build ./...
 
 test:
-	GOWORK=off go test ./... -count=1
+	go test ./... -count=1
+
+test-unit:
+	go test ./... -count=1
+
+test-live:
+	SYSTEMD_MCP_LIVE=1 go test ./... -count=1
 
 vet:
-	GOWORK=off go vet ./...
+	go vet ./...
 
 lint:
 	@command -v golangci-lint >/dev/null 2>&1 && golangci-lint run ./... || \
@@ -19,7 +22,8 @@ lint:
 check: build vet test
 
 coverage:
-	GOWORK=off go test ./... -count=1 -coverprofile=coverage.out
+	go test ./... -count=1 -coverprofile=coverage.out
 	go tool cover -func=coverage.out
 
--include $(HOME)/hairglasses-studio/dotfiles/make/pipeline.mk
+HG_PIPELINE_MK ?= $(or $(wildcard $(abspath $(CURDIR)/../dotfiles/make/pipeline.mk)),$(wildcard $(HOME)/hairglasses-studio/dotfiles/make/pipeline.mk))
+-include $(HG_PIPELINE_MK)

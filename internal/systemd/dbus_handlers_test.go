@@ -6,59 +6,9 @@ import (
 	"testing"
 )
 
-// ---------------------------------------------------------------------------
-// D-Bus handler path tests — exercise the D-Bus code paths in tool handlers.
-// These require a running systemd instance (Linux only, skipped otherwise).
-// ---------------------------------------------------------------------------
-
-func requireDBus(t *testing.T) {
-	t.Helper()
-	requireSystemctl(t) // If no systemctl, no point testing D-Bus either
-
-	// Try to connect via D-Bus
-	sdb, err := NewSystemdDBus(false)
-	if err != nil {
-		t.Skipf("D-Bus session bus not available: %v", err)
-	}
-	_ = sdb.Close()
-}
-
-func withDBus(t *testing.T, fn func()) {
-	t.Helper()
-	origSession := dbusSession
-	origSystem := dbusSystem
-	defer func() {
-		dbusSession = origSession
-		dbusSystem = origSystem
-	}()
-
-	var err error
-	dbusSession, err = NewSystemdDBus(false)
-	if err != nil {
-		t.Skipf("D-Bus session bus not available: %v", err)
-	}
-	defer func() { _ = dbusSession.Close() }()
-
-	dbusSystem, err = NewSystemdDBus(true)
-	if err != nil {
-		// System bus may not be available in some CI environments
-		t.Logf("D-Bus system bus not available: %v", err)
-		dbusSystem = nil
-	} else {
-		defer func() { _ = dbusSystem.Close() }()
-	}
-
-	fn()
-}
-
-// ---------------------------------------------------------------------------
-// systemd_status via D-Bus
-// ---------------------------------------------------------------------------
-
 func TestStatus_DBusPath_KnownUnit(t *testing.T) {
-	requireDBus(t)
-
-	withDBus(t, func() {
+	session := requireUserManagerViaDBus(t)
+	withInjectedDBus(t, session, nil, func() {
 		td := findTool(t, "systemd_status")
 
 		// Try common user-scope units
@@ -84,9 +34,8 @@ func TestStatus_DBusPath_KnownUnit(t *testing.T) {
 }
 
 func TestStatus_DBusPath_NotFoundUnit(t *testing.T) {
-	requireDBus(t)
-
-	withDBus(t, func() {
+	session := requireUserManagerViaDBus(t)
+	withInjectedDBus(t, session, nil, func() {
 		td := findTool(t, "systemd_status")
 		req := makeReq(map[string]any{"unit": "nonexistent-unit-xyz-99999.service"})
 		result, err := td.Handler(context.Background(), req)
@@ -113,9 +62,8 @@ func TestStatus_DBusPath_NotFoundUnit(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestListUnits_DBusPath_Default(t *testing.T) {
-	requireDBus(t)
-
-	withDBus(t, func() {
+	session := requireUserManagerViaDBus(t)
+	withInjectedDBus(t, session, nil, func() {
 		td := findTool(t, "systemd_list_units")
 		req := makeReq(nil)
 		result, err := td.Handler(context.Background(), req)
@@ -132,9 +80,8 @@ func TestListUnits_DBusPath_Default(t *testing.T) {
 }
 
 func TestListUnits_DBusPath_StateFilter(t *testing.T) {
-	requireDBus(t)
-
-	withDBus(t, func() {
+	session := requireUserManagerViaDBus(t)
+	withInjectedDBus(t, session, nil, func() {
 		td := findTool(t, "systemd_list_units")
 		req := makeReq(map[string]any{"state": "active"})
 		result, err := td.Handler(context.Background(), req)
@@ -155,9 +102,8 @@ func TestListUnits_DBusPath_StateFilter(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestListTimers_DBusPath(t *testing.T) {
-	requireDBus(t)
-
-	withDBus(t, func() {
+	session := requireUserManagerViaDBus(t)
+	withInjectedDBus(t, session, nil, func() {
 		td := findTool(t, "systemd_list_timers")
 		req := makeReq(nil)
 		result, err := td.Handler(context.Background(), req)
@@ -178,9 +124,8 @@ func TestListTimers_DBusPath(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestFailed_DBusPath(t *testing.T) {
-	requireDBus(t)
-
-	withDBus(t, func() {
+	session := requireUserManagerViaDBus(t)
+	withInjectedDBus(t, session, nil, func() {
 		td := findTool(t, "systemd_failed")
 		req := makeReq(nil)
 		result, err := td.Handler(context.Background(), req)
@@ -292,7 +237,7 @@ func TestStop_RequiresConfirmation_AllPrefixes(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestLogs_WithSince(t *testing.T) {
-	requireSystemctl(t)
+	requireJournalctlScope(t, false)
 
 	td := findTool(t, "systemd_logs")
 	// Exercise the "since" parameter path
@@ -317,7 +262,7 @@ func TestLogs_WithSince(t *testing.T) {
 }
 
 func TestLogs_NegativeLines(t *testing.T) {
-	requireSystemctl(t)
+	requireJournalctlScope(t, false)
 
 	td := findTool(t, "systemd_logs")
 	// Negative lines should default to 50

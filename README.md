@@ -24,8 +24,7 @@ Or build from source:
 ```bash
 git clone https://github.com/hairglasses-studio/systemd-mcp
 cd systemd-mcp
-make build
-make check
+go build -o systemd-mcp .
 ```
 
 ## Configure
@@ -42,10 +41,6 @@ Add to your MCP client config (for example Codex or Claude Code):
 }
 ```
 
-For a local checkout, the repo now also ships `.mcp.json` plus a repo-local
-launcher script so MCP clients can attach directly without reconstructing the
-command manually.
-
 ## Tools
 
 | Tool | Description |
@@ -61,7 +56,7 @@ command manually.
 | `systemd_list_timers` | List active timers with trigger times |
 | `systemd_failed` | List failed units |
 
-## Usage Examples
+## Scope
 
 All tools default to **user scope** (`--user`). Set `system: true` for system-wide services (requires appropriate permissions).
 
@@ -76,9 +71,32 @@ All tools default to **user scope** (`--user`). Set `system: true` for system-wi
 → systemd_logs(unit: "shader-rotate", lines: 50)
 ```
 
+## Runtime Requirements
+
+- Linux with `systemd`
+- `systemctl` for unit inspection and write operations
+- `journalctl` for log reads
+- A reachable user systemd manager for default user-scope operations
+- Appropriate permissions for system-scope operations
+
+`systemd-mcp` prefers D-Bus, but fallback is backend-aware rather than guaranteed success. A host can have a session bus without a usable user manager, or `systemctl` installed without `systemctl --user` being usable in the current environment. The runtime capability report is available at `systemd://runtime/capabilities`.
+
+## Test Tiers
+
+Default `go test` runs deterministic unit coverage plus live-integration tests that skip unless `SYSTEMD_MCP_LIVE=1` and the required host capability is actually present.
+
+```bash
+go test ./... -count=1
+SYSTEMD_MCP_LIVE=1 go test ./... -count=1
+make test-unit
+make test-live
+```
+
+The canonical dotfiles CI runs user-scope live coverage in a dedicated `systemd-live` job and keeps the system-scope lane as an opt-in `workflow_dispatch` path because host permissions vary.
+
 ## Architecture
 
-Single Go binary. Uses D-Bus as the primary backend with automatic fallback to `systemctl` and `journalctl` when D-Bus is unavailable. Uses mcpkit's `TypedHandler` generics for type-safe parameter handling and structured error codes.
+Single Go binary. Uses D-Bus as the primary backend, explicit runtime capability probes for user and system scope, and structured fallback to `systemctl` and `journalctl` only when those backends are actually usable. Uses mcpkit's `TypedHandler` generics for type-safe parameter handling and structured error codes.
 
 ## License
 
