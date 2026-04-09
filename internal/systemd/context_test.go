@@ -2,8 +2,10 @@ package systemd
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
+	"github.com/hairglasses-studio/mcpkit/resources"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -24,8 +26,8 @@ func TestSystemdResourceModule_Metadata(t *testing.T) {
 func TestSystemdResourceModule_Resources(t *testing.T) {
 	m := &systemdResourceModule{}
 	resources := m.Resources()
-	if len(resources) != 1 {
-		t.Fatalf("expected 1 resource, got %d", len(resources))
+	if len(resources) != 2 {
+		t.Fatalf("expected 2 resources, got %d", len(resources))
 	}
 
 	rd := resources[0]
@@ -53,6 +55,47 @@ func TestSystemdResourceModule_Resources(t *testing.T) {
 	}
 	if tc.URI != "systemd://workflows/unit-triage" {
 		t.Errorf("URI = %q, want %q", tc.URI, "systemd://workflows/unit-triage")
+	}
+}
+
+func TestSystemdRuntimeCapabilitiesResource(t *testing.T) {
+	m := &systemdResourceModule{}
+	defs := m.Resources()
+
+	var runtimeDef resources.ResourceDefinition
+	found := false
+	for _, rd := range defs {
+		if rd.Resource.URI == "systemd://runtime/capabilities" {
+			runtimeDef = rd
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatal("runtime capabilities resource not found")
+	}
+
+	contents, err := runtimeDef.Handler(context.Background(), mcp.ReadResourceRequest{})
+	if err != nil {
+		t.Fatalf("handler error: %v", err)
+	}
+	if len(contents) != 1 {
+		t.Fatalf("expected 1 content, got %d", len(contents))
+	}
+	tc, ok := contents[0].(mcp.TextResourceContents)
+	if !ok {
+		t.Fatalf("expected TextResourceContents, got %T", contents[0])
+	}
+
+	var caps RuntimeCapabilities
+	if err := json.Unmarshal([]byte(tc.Text), &caps); err != nil {
+		t.Fatalf("invalid runtime capabilities json: %v", err)
+	}
+	if caps.User.Scope != "user" {
+		t.Fatalf("unexpected user scope %q", caps.User.Scope)
+	}
+	if caps.System.Scope != "system" {
+		t.Fatalf("unexpected system scope %q", caps.System.Scope)
 	}
 }
 

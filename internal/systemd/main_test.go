@@ -3,7 +3,6 @@ package systemd
 import (
 	"context"
 	"encoding/json"
-	"os/exec"
 	"testing"
 
 	"github.com/hairglasses-studio/mcpkit/mcptest"
@@ -43,8 +42,8 @@ func TestModuleRegistration(t *testing.T) {
 }
 
 func TestContextRegistries(t *testing.T) {
-	if got := buildSystemdResourceRegistry().ResourceCount(); got != 1 {
-		t.Fatalf("expected 1 systemd resource, got %d", got)
+	if got := buildSystemdResourceRegistry().ResourceCount(); got != 2 {
+		t.Fatalf("expected 2 systemd resources, got %d", got)
 	}
 	if got := buildSystemdPromptRegistry().PromptCount(); got != 1 {
 		t.Fatalf("expected 1 systemd prompt, got %d", got)
@@ -56,7 +55,7 @@ func TestContextRegistries(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestStatus_KnownUnit(t *testing.T) {
-	requireSystemctl(t)
+	requireUserManagerViaSystemctl(t)
 
 	td := findTool(t, "systemd_status")
 	// Query a unit that should exist in user scope
@@ -82,7 +81,7 @@ func TestStatus_KnownUnit(t *testing.T) {
 }
 
 func TestStatus_NotFoundUnit(t *testing.T) {
-	requireSystemctl(t)
+	requireUserManagerViaSystemctl(t)
 
 	td := findTool(t, "systemd_status")
 	req := makeReq(map[string]any{"unit": "nonexistent-unit-xyz-12345.service"})
@@ -103,7 +102,7 @@ func TestStatus_NotFoundUnit(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestLogs_DefaultLines(t *testing.T) {
-	requireSystemctl(t)
+	requireJournalctlScope(t, false)
 
 	td := findTool(t, "systemd_logs")
 	// lines=0 should default to 50
@@ -121,7 +120,7 @@ func TestLogs_DefaultLines(t *testing.T) {
 }
 
 func TestLogs_CustomLines(t *testing.T) {
-	requireSystemctl(t)
+	requireJournalctlScope(t, false)
 
 	td := findTool(t, "systemd_logs")
 	req := makeReq(map[string]any{"unit": "dbus.service", "lines": 5})
@@ -142,7 +141,7 @@ func TestLogs_CustomLines(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestListUnits_Default(t *testing.T) {
-	requireSystemctl(t)
+	requireUserManagerViaSystemctl(t)
 
 	td := findTool(t, "systemd_list_units")
 	req := makeReq(nil)
@@ -160,7 +159,7 @@ func TestListUnits_Default(t *testing.T) {
 }
 
 func TestListUnits_StateFilter(t *testing.T) {
-	requireSystemctl(t)
+	requireUserManagerViaSystemctl(t)
 
 	td := findTool(t, "systemd_list_units")
 	req := makeReq(map[string]any{"state": "active"})
@@ -181,7 +180,7 @@ func TestListUnits_StateFilter(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestListTimers(t *testing.T) {
-	requireSystemctl(t)
+	requireUserManagerViaSystemctl(t)
 
 	td := findTool(t, "systemd_list_timers")
 	req := makeReq(nil)
@@ -202,7 +201,7 @@ func TestListTimers(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestFailed(t *testing.T) {
-	requireSystemctl(t)
+	requireUserManagerViaSystemctl(t)
 
 	td := findTool(t, "systemd_failed")
 	req := makeReq(nil)
@@ -223,7 +222,7 @@ func TestFailed(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestStatus_SystemScope(t *testing.T) {
-	requireSystemctl(t)
+	requireSystemManagerViaSystemctl(t)
 
 	td := findTool(t, "systemd_status")
 	// System scope query — may succeed or fail based on permissions or unit not existing
@@ -248,13 +247,6 @@ func TestStatus_SystemScope(t *testing.T) {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-func requireSystemctl(t *testing.T) {
-	t.Helper()
-	if _, err := exec.LookPath("systemctl"); err != nil {
-		t.Skip("systemctl not available")
-	}
-}
 
 func findTool(t *testing.T, name string) registry.ToolDefinition {
 	t.Helper()

@@ -25,7 +25,9 @@ parameter schema.
 1. Fork the repository and clone your fork.
 2. Create a branch from `main`: `git checkout -b feat/my-change`
 3. Make your changes, following the code style below.
-4. Run the check suite: `make build && make vet && make test`
+4. Run the narrowest valid check suite for your host:
+   - `make build && make vet && make test-unit`
+   - `make test-live` only when your host exposes a usable live systemd environment
 5. Commit with a clear, descriptive message.
 6. Push your branch and open a PR against `main`.
 
@@ -40,7 +42,8 @@ refactor-plus-feature.
 git clone https://github.com/hairglasses-studio/systemd-mcp
 cd systemd-mcp
 make build    # go build -o systemd-mcp ./...
-make test     # go test ./... -count=1
+make test     # deterministic default tier (live tests skip unless enabled)
+make test-live
 make vet      # go vet ./...
 ```
 
@@ -58,8 +61,19 @@ make vet      # go vet ./...
 
 - All existing tests must pass before submitting a PR.
 - Add tests for new features and bug fixes.
-- Run tests with race detection: `go test ./... -count=1 -race`
-- Integration tests use `mcptest.NewServer()`; unit tests use stdlib `testing`.
+- Run the default deterministic tier with race detection: `go test ./... -count=1 -race`
+- Run live integration coverage with `SYSTEMD_MCP_LIVE=1 go test ./... -count=1 -race` only when the host can satisfy the requested scope.
+- Integration tests use `mcptest.NewServer()` plus explicit capability probes; unit tests use stdlib `testing`.
+
+### Environment Matrix
+
+| Tier | Requires |
+|------|----------|
+| Default `go test` | Go toolchain only; live tests will skip when disabled or unsupported |
+| Live user-scope | `SYSTEMD_MCP_LIVE=1`, Linux, `systemctl`, reachable user manager |
+| Live system-scope | `SYSTEMD_MCP_LIVE=1`, Linux, `systemctl`, reachable system manager, appropriate permissions; intended for manual or dedicated-runner execution |
+
+If your host has `systemctl` installed but `systemctl --user` cannot reach a user manager, that is an environment limitation, not a unit-test failure. The runtime capability report at `systemd://runtime/capabilities` is the source of truth for what the current host can actually support.
 
 ## Branch Naming
 
