@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "systemd-mcp": {
+      "command": "bash",
+      "args": ["./scripts/run-systemd-mcp.sh"],
+      "cwd": "."
+    }
+  }
+}
