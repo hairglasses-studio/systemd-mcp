@@ -18,7 +18,7 @@
 !.env.*.example
 
 # Build artifacts
-systemd-mcp
+/systemd-mcp
 coverage.out
 cov.out
 
