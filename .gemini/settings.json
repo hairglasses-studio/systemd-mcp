@@ -14,10 +14,10 @@
   "mcpServers": {
     "systemd-mcp": {
       "args": [
-        "./scripts/run-systemd-mcp.sh"
+        "-lc",
+        "exec ./scripts/run-systemd-mcp.sh"
       ],
-      "command": "bash",
-      "cwd": "."
+      "command": "bash"
     }
   }
 }

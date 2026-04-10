@@ -2,8 +2,7 @@
   "mcpServers": {
     "systemd-mcp": {
       "command": "bash",
-      "args": ["./scripts/run-systemd-mcp.sh"],
-      "cwd": "."
+      "args": ["-lc", "exec ./scripts/run-systemd-mcp.sh"]
     }
   }
 }
