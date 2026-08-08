@@ -2,13 +2,25 @@ package systemd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/hairglasses-studio/mcpkit/prompts"
+	"github.com/hairglasses-studio/mcpkit/registry"
 	"github.com/hairglasses-studio/mcpkit/resources"
-	"github.com/mark3labs/mcp-go/mcp"
 )
+
+// newDocResource builds a registry-aliased Resource via mcpkit's compat
+// constructor plus field assignment, instead of mcp-go's functional options
+// (mcp.WithResourceDescription etc.), which the compat layer deliberately
+// does not re-export. This file must not import mark3labs/mcp-go (or
+// modelcontextprotocol/go-sdk) directly so it compiles under both build
+// tags unchanged.
+func newDocResource(uri, name, description, mimeType string) registry.Resource {
+	r := registry.NewResource(uri, name)
+	r.Description = description
+	r.MIMEType = mimeType
+	return r
+}
 
 type systemdResourceModule struct{}
 
@@ -20,44 +32,28 @@ func (m *systemdResourceModule) Description() string {
 func (m *systemdResourceModule) Resources() []resources.ResourceDefinition {
 	return []resources.ResourceDefinition{
 		{
-			Resource: mcp.NewResource(
+			Resource: newDocResource(
 				"systemd://workflows/unit-triage",
 				"Systemd Unit Triage",
-				mcp.WithResourceDescription("Compact workflow for diagnosing a failing or noisy systemd unit"),
-				mcp.WithMIMEType("text/markdown"),
+				"Compact workflow for diagnosing a failing or noisy systemd unit",
+				"text/markdown",
 			),
-			Handler: func(_ context.Context, _ mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-				return []mcp.ResourceContents{
-					mcp.TextResourceContents{
-						URI:      "systemd://workflows/unit-triage",
-						MIMEType: "text/markdown",
-						Text:     "1. Run `systemd_status` to confirm load, active, sub-state, pid, and fragment path.\n2. Run `systemd_logs` with a bounded line count for recent evidence.\n3. Run `systemd_failed` or `systemd_list_units` if the issue may be broader than one unit.\n4. Only reach for `systemd_restart`, `systemd_stop`, or `systemd_disable` after the read path explains the failure.",
-					},
-				}, nil
-			},
+			Handler: resources.TextResourceHandler(func(_ context.Context, _ string) (string, string, error) {
+				return "text/markdown", "1. Run `systemd_status` to confirm load, active, sub-state, pid, and fragment path.\n2. Run `systemd_logs` with a bounded line count for recent evidence.\n3. Run `systemd_failed` or `systemd_list_units` if the issue may be broader than one unit.\n4. Only reach for `systemd_restart`, `systemd_stop`, or `systemd_disable` after the read path explains the failure.", nil
+			}),
 			Category: "workflow",
 			Tags:     []string{"triage", "debugging", "systemd"},
 		},
 		{
-			Resource: mcp.NewResource(
+			Resource: newDocResource(
 				"systemd://runtime/capabilities",
 				"Systemd Runtime Capabilities",
-				mcp.WithResourceDescription("Live backend capability report for user and system scope"),
-				mcp.WithMIMEType("application/json"),
+				"Live backend capability report for user and system scope",
+				"application/json",
 			),
-			Handler: func(_ context.Context, _ mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-				body, err := json.MarshalIndent(detectRuntimeCapabilities(), "", "  ")
-				if err != nil {
-					return nil, err
-				}
-				return []mcp.ResourceContents{
-					mcp.TextResourceContents{
-						URI:      "systemd://runtime/capabilities",
-						MIMEType: "application/json",
-						Text:     string(body),
-					},
-				}, nil
-			},
+			Handler: resources.JSONResourceHandler(func(_ context.Context, _ string) (any, error) {
+				return detectRuntimeCapabilities(), nil
+			}),
 			Category: "runtime",
 			Tags:     []string{"systemd", "capabilities", "runtime"},
 		},
@@ -76,28 +72,23 @@ func (m *systemdPromptModule) Description() string {
 func (m *systemdPromptModule) Prompts() []prompts.PromptDefinition {
 	return []prompts.PromptDefinition{
 		{
-			Prompt: mcp.NewPrompt(
+			Prompt: registry.MakePrompt(
 				"systemd_triage_unit",
-				mcp.WithPromptDescription("Guide a bounded investigation of a systemd unit before any write action"),
-				mcp.WithArgument("unit", mcp.RequiredArgument(), mcp.ArgumentDescription("Systemd unit name to investigate")),
-				mcp.WithArgument("scope", mcp.ArgumentDescription("user (default) or system")),
+				"Guide a bounded investigation of a systemd unit before any write action",
+				registry.PromptArgument{Name: "unit", Description: "Systemd unit name to investigate", Required: true},
+				registry.PromptArgument{Name: "scope", Description: "user (default) or system"},
 			),
-			Handler: func(_ context.Context, req mcp.GetPromptRequest) (*mcp.GetPromptResult, error) {
-				unit := req.Params.Arguments["unit"]
-				scope := req.Params.Arguments["scope"]
+			Handler: prompts.TextPromptHandler(func(_ context.Context, args map[string]string) (string, string, error) {
+				unit := args["unit"]
+				scope := args["scope"]
 				if scope == "" {
 					scope = "user"
 				}
-				return &mcp.GetPromptResult{
-					Description: "Investigate systemd unit " + unit,
-					Messages: []mcp.PromptMessage{
-						mcp.NewPromptMessage(mcp.RoleUser, mcp.NewTextContent(fmt.Sprintf(
-							"Investigate the %s-scoped unit %q. Start with `systemd_status`, then use `systemd_logs` with a bounded line count, and only suggest `systemd_restart`, `systemd_stop`, or `systemd_disable` if the evidence justifies a write action.",
-							scope, unit,
-						))),
-					},
-				}, nil
-			},
+				return "Investigate systemd unit " + unit, fmt.Sprintf(
+					"Investigate the %s-scoped unit %q. Start with `systemd_status`, then use `systemd_logs` with a bounded line count, and only suggest `systemd_restart`, `systemd_stop`, or `systemd_disable` if the evidence justifies a write action.",
+					scope, unit,
+				), nil
+			}),
 			Category: "workflow",
 			Tags:     []string{"systemd", "triage", "debugging"},
 		},

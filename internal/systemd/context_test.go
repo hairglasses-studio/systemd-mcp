@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/hairglasses-studio/mcpkit/registry"
 	"github.com/hairglasses-studio/mcpkit/resources"
-	"github.com/mark3labs/mcp-go/mcp"
 )
 
 // ---------------------------------------------------------------------------
@@ -25,12 +25,12 @@ func TestSystemdResourceModule_Metadata(t *testing.T) {
 
 func TestSystemdResourceModule_Resources(t *testing.T) {
 	m := &systemdResourceModule{}
-	resources := m.Resources()
-	if len(resources) != 2 {
-		t.Fatalf("expected 2 resources, got %d", len(resources))
+	defs := m.Resources()
+	if len(defs) != 2 {
+		t.Fatalf("expected 2 resources, got %d", len(defs))
 	}
 
-	rd := resources[0]
+	rd := defs[0]
 	if rd.Category != "workflow" {
 		t.Errorf("Category = %q, want %q", rd.Category, "workflow")
 	}
@@ -38,23 +38,15 @@ func TestSystemdResourceModule_Resources(t *testing.T) {
 		t.Error("expected tags")
 	}
 
-	// Call the handler
-	contents, err := rd.Handler(context.Background(), mcp.ReadResourceRequest{})
+	mimeType, text, err := resources.CallHandlerText(context.Background(), rd.Handler, "systemd://workflows/unit-triage")
 	if err != nil {
 		t.Fatalf("handler error: %v", err)
 	}
-	if len(contents) != 1 {
-		t.Fatalf("expected 1 content, got %d", len(contents))
+	if mimeType != "text/markdown" {
+		t.Errorf("mimeType = %q, want %q", mimeType, "text/markdown")
 	}
-	tc, ok := contents[0].(mcp.TextResourceContents)
-	if !ok {
-		t.Fatalf("expected TextResourceContents, got %T", contents[0])
-	}
-	if tc.Text == "" {
+	if text == "" {
 		t.Error("resource text is empty")
-	}
-	if tc.URI != "systemd://workflows/unit-triage" {
-		t.Errorf("URI = %q, want %q", tc.URI, "systemd://workflows/unit-triage")
 	}
 }
 
@@ -75,20 +67,16 @@ func TestSystemdRuntimeCapabilitiesResource(t *testing.T) {
 		t.Fatal("runtime capabilities resource not found")
 	}
 
-	contents, err := runtimeDef.Handler(context.Background(), mcp.ReadResourceRequest{})
+	mimeType, text, err := resources.CallHandlerText(context.Background(), runtimeDef.Handler, "systemd://runtime/capabilities")
 	if err != nil {
 		t.Fatalf("handler error: %v", err)
 	}
-	if len(contents) != 1 {
-		t.Fatalf("expected 1 content, got %d", len(contents))
-	}
-	tc, ok := contents[0].(mcp.TextResourceContents)
-	if !ok {
-		t.Fatalf("expected TextResourceContents, got %T", contents[0])
+	if mimeType != "application/json" {
+		t.Errorf("mimeType = %q, want %q", mimeType, "application/json")
 	}
 
 	var caps RuntimeCapabilities
-	if err := json.Unmarshal([]byte(tc.Text), &caps); err != nil {
+	if err := json.Unmarshal([]byte(text), &caps); err != nil {
 		t.Fatalf("invalid runtime capabilities json: %v", err)
 	}
 	if caps.User.Scope != "user" {
@@ -122,12 +110,12 @@ func TestSystemdPromptModule_Metadata(t *testing.T) {
 
 func TestSystemdPromptModule_Prompts(t *testing.T) {
 	m := &systemdPromptModule{}
-	prompts := m.Prompts()
-	if len(prompts) != 1 {
-		t.Fatalf("expected 1 prompt, got %d", len(prompts))
+	defs := m.Prompts()
+	if len(defs) != 1 {
+		t.Fatalf("expected 1 prompt, got %d", len(defs))
 	}
 
-	pd := prompts[0]
+	pd := defs[0]
 	if pd.Category != "workflow" {
 		t.Errorf("Category = %q, want %q", pd.Category, "workflow")
 	}
@@ -137,14 +125,10 @@ func TestSystemdPrompt_Handler(t *testing.T) {
 	m := &systemdPromptModule{}
 	pd := m.Prompts()[0]
 
-	// Test with explicit arguments
-	req := mcp.GetPromptRequest{}
-	req.Params.Arguments = map[string]string{
+	result, err := callPrompt(pd.Handler, map[string]string{
 		"unit":  "nginx.service",
 		"scope": "system",
-	}
-
-	result, err := pd.Handler(context.Background(), req)
+	})
 	if err != nil {
 		t.Fatalf("handler error: %v", err)
 	}
@@ -160,24 +144,18 @@ func TestSystemdPrompt_DefaultScope(t *testing.T) {
 	m := &systemdPromptModule{}
 	pd := m.Prompts()[0]
 
-	// Test with no scope — should default to "user"
-	req := mcp.GetPromptRequest{}
-	req.Params.Arguments = map[string]string{
+	result, err := callPrompt(pd.Handler, map[string]string{
 		"unit": "test.service",
-	}
-
-	result, err := pd.Handler(context.Background(), req)
+	})
 	if err != nil {
 		t.Fatalf("handler error: %v", err)
 	}
 	if result == nil {
 		t.Fatal("result is nil")
 	}
-	// The prompt content should mention "user-scoped"
 	if len(result.Messages) > 0 {
-		tc, ok := result.Messages[0].Content.(mcp.TextContent)
-		if ok && tc.Text != "" {
-			assertContains(t, tc.Text, "user-scoped")
+		if text, ok := registry.ExtractTextContent(result.Messages[0].Content); ok && text != "" {
+			assertContains(t, text, "user-scoped")
 		}
 	}
 }
