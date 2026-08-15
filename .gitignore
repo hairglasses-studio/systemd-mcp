@@ -19,8 +19,10 @@
 
 # Build artifacts
 /systemd-mcp
+/systemd-mcp-legacy
 coverage.out
 cov.out
+
 
 # IDE
 .vscode/
