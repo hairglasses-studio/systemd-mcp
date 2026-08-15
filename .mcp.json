@@ -1,8 +1,12 @@
 {
   "mcpServers": {
     "systemd-mcp": {
-      "command": "bash",
-      "args": ["-lc", "exec ./scripts/run-systemd-mcp.sh"]
+      "command": "/usr/bin/env",
+      "args": [
+        "bash",
+        "-lc",
+        "exec go run ./cmd/systemd-mcp"
+      ]
     }
   }
 }
