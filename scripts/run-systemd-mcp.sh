@@ -7,13 +7,10 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 export GOWORK=off
 
-# DEFAULT REVERTED to legacy (2026-08-22): the pinned mcpkit (v0.8.x) predates
-# the P78.38 schema fix, so the official_sdk build serves ZERO property
-# descriptions and DROPS every omitempty input param (live-verified: the
-# legacy build serves 22/22 described props incl. confirm; official served
-# none). Re-default to official once mcpkit v0.8.2 (schema_reflect) is
-# tagged and the pin bumped. SYSTEMD_MCP_SDK=official still selects it explicitly.
-case "${SYSTEMD_MCP_SDK:-legacy}" in
+# Default is official since mcpkit v0.8.2 (P78.38 schema_reflect fix; wire-verified
+# 22/22 described props incl. confirm, equal to legacy). SYSTEMD_MCP_SDK=legacy still
+# selects the legacy build explicitly.
+case "${SYSTEMD_MCP_SDK:-official}" in
   official)
     exec go run -tags=official_sdk ./cmd/systemd-mcp
     ;;
