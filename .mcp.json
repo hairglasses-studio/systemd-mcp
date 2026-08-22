@@ -5,7 +5,7 @@
       "args": [
         "bash",
         "-lc",
-        "exec go run ./cmd/systemd-mcp"
+        "exec scripts/run-systemd-mcp.sh"
       ]
     }
   }
